@@ -41,7 +41,7 @@ class Parser
             while next_token?(:tkid)            
                 return ASTNode.new(:astapplication1, [parse_atom, parse_application1])
             end
-            return nil
+            return ASTNode.new(:astapplication1, nil)
         end
 
         def parse_atom
@@ -51,7 +51,7 @@ class Parser
                 consume_token(:tkrparen)
                 return ASTNode.new(:astatom, [term])
             else
-                return ASTNode.new(:asttoken, [parse_identifier])
+                return ASTNode.new(:astatom, [parse_identifier])
             end
         end
         
@@ -63,6 +63,8 @@ class Parser
         end
 
         def next_token?(type)
-            return @tokens[@l + 1].type == type
+            nt = @tokens[@l + 1]
+            return false if nt.nil?
+            return nt.type == type
         end
 end
