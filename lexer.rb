@@ -6,7 +6,7 @@ class Lexer
     end
 
     def self.to_proc
-        method(:tokenise).to_proc
+        method(:call).to_proc
     end
 
     private

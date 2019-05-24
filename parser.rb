@@ -3,7 +3,11 @@ require_relative 'ast.rb'
 
 class Parser
     def self.call(tokens)
-        new(tokens).send(:parse_term)
+        new(tokens).send(:parse_expr)
+    end
+
+    def self.to_proc
+        method(:call).to_proc
     end
 
     private
@@ -12,11 +16,11 @@ class Parser
             @l = -1
         end
 
-        def parse_term
-            if next_token?(:tklambda)
-                return ASTNode.new(:astterm, [parse_abstraction])
+        def parse_expr
+            if lookahead.type == :tklambda
+                return ASTNode.new(:astexpr, [parse_abstraction])
             else
-                return ASTNode.new(:astterm, [parse_application0])
+                return ASTNode.new(:astexpr, [parse_application])
             end
         end
 
@@ -24,8 +28,8 @@ class Parser
             consume_token(:tklambda)
             id = parse_identifier
             consume_token(:tkdot)
-            term = parse_term
-            return ASTNode.new(:astabstraction, [id, term])
+            expr = parse_expr
+            return ASTNode.new(:astabstraction, [id, expr])
         end
 
         def parse_identifier
@@ -33,38 +37,38 @@ class Parser
             return ASTNode.new(:astidentifier, nil)
         end
 
-        def parse_application0
-            return ASTNode.new(:astapplication0, [parse_atom, parse_application1])
-        end
-        
-        def parse_application1
-            while next_token?(:tkid)            
-                return ASTNode.new(:astapplication1, [parse_atom, parse_application1])
+        def parse_application
+            left_child = parse_atom
+            first_atom = [:tklparen, :tkid] # FIRST(ATOM)
+            # application -> atom application'
+            while !lookahead.nil? and first_atom.include?(lookahead.type)
+                consume_token
+                return ASTNode.new(:astapplication, [left_child, parse_application])
             end
-            return ASTNode.new(:astapplication1, nil)
+            # application' -> atom application' | ε
+            return left_child
         end
 
         def parse_atom
-            if next_token?(:tklparen)
+            if lookahead.type == :tklparen
                 consume_token(:tklparen)
-                term = parse_term
+                expr = parse_expr
                 consume_token(:tkrparen)
-                return ASTNode.new(:astatom, [term])
+                return ASTNode.new(:astatom, [expr])
             else
                 return ASTNode.new(:astatom, [parse_identifier])
             end
         end
         
         def consume_token(type = nil)
-            if !type.nil? and !next_token?(type)
+            if !type.nil? and lookahead.type != type
                 raise "Unexpected token at #{@l + 1}, expecting #{type}."
             end
             @l += 1
         end
 
-        def next_token?(type)
+        def lookahead
             nt = @tokens[@l + 1]
-            return false if nt.nil?
-            return nt.type == type
+            return nt
         end
 end
