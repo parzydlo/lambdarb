@@ -12,18 +12,20 @@ class Lexer
     private
         def tokenise(string)
             tokens = []
-            string.each_char { |char| 
+            string.each_char.with_index { |char, i| 
                 case char
-                when 'λ'
+                when /[λ\\]/
                     tokens << Token.new(:tklambda, char)
-                when '.'
+                when /\./
                     tokens << Token.new(:tkdot, char)
-                when '('
+                when /\(/
                     tokens << Token.new(:tklparen, char)
-                when ')'
+                when /\)/
                     tokens << Token.new(:tkrparen, char)
-                else
+                when /[a-z]/
                     tokens << Token.new(:tkid, char)
+                else
+                    raise "Invalid character: \"#{char}\" at pos: #{i}"
                 end
             }
             return tokens
