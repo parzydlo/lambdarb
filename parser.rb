@@ -18,23 +18,24 @@ class Parser
 
         def parse_expr
             if lookahead.type == :tklambda
-                return ASTNode.new(:astexpr, [parse_abstraction])
+                return ExprNode.new([parse_abstraction], @l)
             else
-                return ASTNode.new(:astexpr, [parse_application])
+                return ExprNode.new([parse_application], @l)
             end
         end
 
         def parse_abstraction
-            consume_token(:tklambda)
+            match_token(:tklambda)
             id = parse_identifier
-            consume_token(:tkdot)
+            match_token(:tkdot)
             expr = parse_expr
-            return ASTNode.new(:astabstraction, [id, expr])
+            return AbstrNode.new([id, expr], @l)
         end
 
         def parse_identifier
-            consume_token
-            return ASTNode.new(:astidentifier, nil)
+            id_token = match_token(:tkid)
+            val = id_token.value
+            return IdNode.new(nil, @l, val)
         end
 
         def parse_application
@@ -42,8 +43,7 @@ class Parser
             first_atom = [:tklparen, :tkid] # FIRST(ATOM)
             # application -> atom application'
             while !lookahead.nil? and first_atom.include?(lookahead.type)
-                consume_token
-                return ASTNode.new(:astapplication, [left_child, parse_application])
+                return AppNode.new([left_child, parse_application], @l)
             end
             # application' -> atom application' | ε
             return left_child
@@ -51,24 +51,24 @@ class Parser
 
         def parse_atom
             if lookahead.type == :tklparen
-                consume_token(:tklparen)
+                match_token(:tklparen)
                 expr = parse_expr
-                consume_token(:tkrparen)
-                return ASTNode.new(:astatom, [expr])
+                match_token(:tkrparen)
+                return AtomNode.new([expr], @l)
             else
-                return ASTNode.new(:astatom, [parse_identifier])
+                return AtomNode.new([parse_identifier], @l)
             end
         end
         
-        def consume_token(type = nil)
+        def match_token(type = nil)
             if !type.nil? and lookahead.type != type
-                raise "Unexpected token at #{@l + 1}, expecting #{type}."
+                raise "Unexpected token at #{@l + 1}. Expected: #{type}, got: #{lookahead.type}."
             end
             @l += 1
+            return @tokens[@l - 1]
         end
 
         def lookahead
-            nt = @tokens[@l + 1]
-            return nt
+            return @tokens[@l + 1]
         end
 end
