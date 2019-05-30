@@ -62,10 +62,11 @@ class Parser
         
         def match_token(type = nil)
             if !type.nil? and lookahead.type != type
-                raise "Unexpected token at #{@l + 1}. Expected: #{type}, got: #{lookahead.type}."
+                raise "Unexpected token at #{@l + 1}. Expected: #{type}, "\
+                      "got: #{lookahead.type}."
             end
             @l += 1
-            return @tokens[@l - 1]
+            return @tokens[@l]
         end
 
         def lookahead

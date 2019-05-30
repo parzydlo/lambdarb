@@ -17,4 +17,4 @@ p = Parser.to_proc
 
 input = "(λx.x)(λy.y)"
 ast = p[l[input]]
-ast.accept(PrintVisitor.new)
+PrintVisitor.new.visit(ast)

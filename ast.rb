@@ -5,11 +5,6 @@ class ASTNode
         @children = children
         @pos = pos
     end
-
-    def accept(visitor)
-        visitor.visit(self)
-        @children.each { |child| child.accept(visitor) } unless @children.nil?
-    end
 end
 
 class ExprNode < ASTNode
