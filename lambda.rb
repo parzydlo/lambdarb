@@ -15,6 +15,6 @@ require_relative 'print_visitor.rb'
 l = Lexer.to_proc
 p = Parser.to_proc
 
-input = "(λx.x)(λy.y)"
+input = ARGV[0]
 ast = p[l[input]]
 PrintVisitor.new.visit(ast)

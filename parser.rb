@@ -43,7 +43,7 @@ class Parser
             first_atom = [:tklparen, :tkid] # FIRST(ATOM)
             # application -> atom application'
             while !lookahead.nil? and first_atom.include?(lookahead.type)
-                return AppNode.new([left_child, parse_application], @l)
+                left_child = AppNode.new([left_child, parse_atom], @l)
             end
             # application' -> atom application' | ε
             return left_child
